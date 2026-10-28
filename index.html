@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Aldaham 3D Viewer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+<style>
+/* Layout concept: a watchmaker's spec sheet. Narrow label rail on the left, content on the right; the live piece leads. */
+:root {
+  --bg: #f8f8f6;
+  --panel: #ffffff;
+  --ink: #1c1a16;
+  --muted: #6b665c;
+  --line: #e2ded5;
+  --gold: #8d6c32;
+  --gold-soft: #efe6d2;
+  --steel: #7d838b;
+  --ok: #2f6b45;
+  --warn: #8a5a12;
+  --stage: #ffffff;
+  --display: 'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif;
+  --body: 'IBM Plex Sans', 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131210; --panel: #1b1a17; --ink: #ece8df; --muted: #a39d91; --line: #2e2c27;
+    --gold: #d3b27a; --gold-soft: #2c2619; --steel: #a5abb2; --ok: #7fbf95; --warn: #e0b06a; --stage: #ffffff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131210; --panel: #1b1a17; --ink: #ece8df; --muted: #a39d91; --line: #2e2c27;
+  --gold: #d3b27a; --gold-soft: #2c2619; --steel: #a5abb2; --ok: #7fbf95; --warn: #e0b06a; --stage: #ffffff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 16px; line-height: 1.65;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 72px;
+}
+h1, h2 { font-family: var(--display); font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.05; }
+h2 { font-size: clamp(26px, 3.2vw, 36px); line-height: 1.15; }
+h3 { font-size: 17px; margin: 0 0 6px; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--gold); }
+.label { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* header */
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 36px; }
+.top .label b { color: var(--ink); font-weight: 500; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 40px; align-items: start; }
+.hero-copy { display: grid; gap: 18px; padding-top: 8px; }
+.hero-copy .lede { font-size: 18px; color: var(--ink); }
+.hero-copy .sub { color: var(--muted); }
+.try { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 18px; border-radius: 999px; background: var(--ink); color: var(--bg); text-decoration: none; font-size: 14.5px; font-weight: 500; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); margin-top: 6px; }
+.facts div { padding: 12px 12px 0 0; display: grid; gap: 2px; }
+.facts div + div { padding-left: 12px; border-left: 1px solid var(--line); }
+.facts b { font-family: var(--mono); font-size: 20px; font-weight: 500; }
+.facts span { font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+.stage { background: var(--stage); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; display: grid; }
+.stage-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-bottom: 1px solid #ebe7de; background: #fff; color: #1c1a16; }
+.seg { display: inline-flex; border: 1px solid #ddd6c6; border-radius: 999px; padding: 3px; gap: 2px; background: #fff; }
+.seg button { appearance: none; border: 0; background: transparent; font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; cursor: pointer; color: #5b5547; }
+.seg button[aria-pressed="true"] { background: #1c1a16; color: #fff; }
+.seg button:focus-visible, .views button:focus-visible, .cmp input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.stage-name { font-size: 13px; color: #5b5547; }
+.stage-name b { color: #1c1a16; font-weight: 600; }
+.mv-box { position: relative; aspect-ratio: 1 / 1; max-width: 100%; background: #fff; }
+.mv-box model-viewer { width: 100%; height: 100%; display: block; background: #fff; --poster-color: #fff; --progress-bar-color: #b8955a; }
+.views { position: absolute; bottom: 12px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; padding: 0 12px; }
+.views button { appearance: none; border: 1px solid #e3dccb; background: rgba(255,255,255,.94); color: #4d4638; font: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.views button[aria-pressed="true"] { border-color: #b8955a; color: #1c1a16; background: #f7f0e1; }
+.hint { position: absolute; top: 12px; left: 12px; font-family: var(--mono); font-size: 11px; color: #7a735f; background: rgba(255,255,255,.9); padding: 4px 8px; border-radius: 3px; }
+.stage-foot { padding: 10px 12px; border-top: 1px solid #ebe7de; background: #fff; font-size: 12.5px; color: #6b665c; }
+
+/* sections */
+section.block { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 32px; padding-top: 64px; margin-top: 64px; border-top: 1px solid var(--line); }
+.rail { display: grid; gap: 6px; align-content: start; position: sticky; top: max(16px, env(safe-area-inset-top, 0px)); }
+.rail .note { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.body { display: grid; gap: 22px; min-width: 0; }
+
+.teardown { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
+.teardown div { padding: 16px 18px; display: grid; gap: 4px; min-width: 0; }
+.teardown div:nth-child(odd) { border-right: 1px solid var(--line); }
+.teardown div:nth-child(n+3) { border-top: 1px solid var(--line); }
+.teardown p { font-size: 14.5px; color: var(--muted); }
+code, .code { font-family: var(--mono); font-size: 0.86em; background: var(--gold-soft); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere; }
+
+/* flow diagram */
+.flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; align-items: stretch; }
+.flow .step { position: relative; padding: 16px 18px 16px 0; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.flow .step + .step { padding-left: 18px; border-left: 1px solid var(--line); }
+.flow .step .label { color: var(--gold); }
+.flow .step p { font-size: 14px; color: var(--muted); }
+.flow .step h3 { font-size: 16px; }
+.callout { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--gold); padding: 14px 18px; border-radius: 0 4px 4px 0; font-size: 15px; }
+
+/* comparison */
+.cmp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.cmp { display: grid; gap: 10px; min-width: 0; }
+.cmp-frame { position: relative; aspect-ratio: 1 / 1; max-width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.cmp-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cmp-frame .over { clip-path: inset(0 0 0 var(--cut, 50%)); }
+.cmp-frame .bar { position: absolute; top: 0; bottom: 0; left: var(--cut, 50%); width: 2px; background: #b8955a; transform: translateX(-1px); pointer-events: none; }
+.cmp-frame .tag { position: absolute; top: 10px; font-family: var(--mono); font-size: 11px; padding: 3px 7px; border-radius: 3px; background: rgba(28,26,22,.78); color: #fff; }
+.cmp-frame .tag.l { left: 10px; } .cmp-frame .tag.r { right: 10px; }
+.cmp input[type=range] { width: 100%; accent-color: var(--gold); }
+.cmp figcaption { font-size: 13.5px; color: var(--muted); }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.no { color: var(--muted); }
+
+.phases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
+.phases > div { padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.phases > div + div { border-left: 1px solid var(--line); }
+.phases ol { margin: 0; padding-left: 18px; font-size: 14.5px; display: grid; gap: 6px; }
+.phases .when { font-family: var(--mono); font-size: 12px; color: var(--gold); }
+
+.list { margin: 0; padding-left: 18px; display: grid; gap: 8px; font-size: 15px; }
+.list li::marker { color: var(--gold); }
+.files { font-family: var(--mono); font-size: 13px; }
+.files td:first-child { white-space: nowrap; color: var(--ink); }
+.foot { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 960px) {
+  .hero { grid-template-columns: 1fr; }
+  section.block { grid-template-columns: 1fr; gap: 16px; }
+  .rail { position: static; }
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .flow .step:nth-child(3) { border-left: 0; padding-left: 0; }
+  .flow .step:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .phases { grid-template-columns: 1fr; }
+  .phases > div + div { border-left: 0; border-top: 1px solid var(--line); }
+}
+@media (max-width: 640px) {
+  .facts { grid-template-columns: 1fr; }
+  .facts div + div { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+  .teardown, .cmp-grid { grid-template-columns: 1fr; }
+  .teardown div:nth-child(odd) { border-right: 0; }
+  .teardown div + div { border-top: 1px solid var(--line); }
+  .flow { grid-template-columns: 1fr; }
+  .flow .step + .step { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <div class="top">
+    <span class="label">Proposal for <b>Aldaham</b> · aldaham.com on Salla</span>
+    <span class="label">October 2026</span>
+  </div>
+
+  <div class="hero">
+    <div class="hero-copy">
+      <span class="label">Live sample · Frank Rosha</span>
+      <h1>3D product views for Aldaham</h1>
+      <p class="lede">Shoppers turn the piece in their hand on the product page, zoom into the dial and the stones, and on a phone place it on their table at real size. The same thing Cartier does, built on the 3D support Salla already has.</p>
+      <p class="sub">The two pieces on this page are working real-time models of Frank Rosha products, lit and finished to match Aldaham's own product photos. Drag to turn them.</p>
+      <div class="try">
+        <a class="btn" href="pages/watch.html">Open the watch product page</a>
+        <a class="btn ghost" href="pages/ring.html">Open the ring product page</a>
+      </div>
+      <div class="facts">
+        <div><b>1 script</b><span>added to the Salla store; no theme rebuild</span></div>
+        <div><b>$0</b><span>viewer software and AR; open source, free hosting tier</span></div>
+        <div><b>≤ 6 MB</b><span>per model; the page loads it only on that product</span></div>
+      </div>
+    </div>
+
+    <div class="stage" aria-label="Live 3D sample">
+      <div class="stage-bar">
+        <div class="seg" role="group" aria-label="Choose a piece">
+          <button type="button" id="pick-watch" aria-pressed="true">Watch</button>
+          <button type="button" id="pick-ring" aria-pressed="false">Ring</button>
+        </div>
+        <span class="stage-name" id="stage-name"><b>SFR1838Z01</b> · 34 mm · steel and rose gold</span>
+      </div>
+      <div class="mv-box">
+        <model-viewer id="mv"
+          src="models/frank-rosha-sfr1838z01.glb"
+          poster="models/frank-rosha-sfr1838z01-poster.webp"
+          environment-image="env/studio-watch.hdr"
+          exposure="1" tone-mapping="neutral" shadow-intensity="0"
+          camera-controls disable-pan touch-action="pan-y" interaction-prompt="none"
+          camera-orbit="0deg 92deg auto" field-of-view="18deg" min-field-of-view="5deg" max-field-of-view="30deg"
+          interpolation-decay="120" alt="Frank Rosha SFR1838Z01 watch in 3D"></model-viewer>
+        <span class="hint" id="hint">drag to turn · scroll to zoom</span>
+        <div class="views" id="views" role="group" aria-label="Views"></div>
+      </div>
+      <div class="stage-foot" id="stage-foot">The hands show your current time.</div>
+    </div>
+  </div>
+
+  <section class="block" id="cartier">
+    <div class="rail">
+      <span class="label">What Cartier does</span>
+      <span class="note">Inspected on cartier.com/ar-sa, Ballon Bleu WSBB0044</span>
+    </div>
+    <div class="body">
+      <h2>A custom 3D app inside the gallery</h2>
+      <p>Cartier's product gallery has one slide that loads an iframe from its own subdomain. Behind it is a bespoke application the brand has run since 2021.</p>
+      <div class="teardown">
+        <div><span class="label">Embed</span><h3>iframe from webgl.cartier.com</h3><p>Square slide in the product gallery, with a "tap to try" virtual try-on button and a QR code for phones.</p></div>
+        <div><span class="label">Engine</span><h3>PlayCanvas 2.22.6</h3><p>A WebGL engine; the app is a "CartierConfigurator" project built in the PlayCanvas editor.</p></div>
+        <div><span class="label">Models</span><h3>One compressed file per part</h3><p>Case, frame, glass, caseback, bracelet and engraving load separately, with diffuse, normal and gloss/metal/AO maps and tiled brushed-steel textures.</p></div>
+        <div><span class="label">Scale of the build</span><h3>60 MB product configuration</h3><p>One config file maps every reference to its parts and materials, plus prefiltered studio light maps.</p></div>
+      </div>
+      <p>This is a six-figure, agency-maintained application. Aldaham gets most of the visual result for a small fraction of the cost by using a standard viewer and the 3D field Salla already provides.</p>
+    </div>
+  </section>
+
+  <section class="block" id="setup">
+    <div class="rail">
+      <span class="label">Recommended setup</span>
+      <span class="note">Works with Aldaham's current Salla theme</span>
+    </div>
+    <div class="body">
+      <h2>Salla's own 3D field, plus one small script</h2>
+      <div class="flow">
+        <div class="step"><span class="label">Model</span><h3>One GLB per product</h3><p>Real dimensions and finishes, under 6 MB. Made from the supplier's CAD files where they exist.</p></div>
+        <div class="step"><span class="label">Salla</span><h3>"3D images" app</h3><p>Salla's free official app (<span dir="rtl" lang="ar">دعم الصور ثلاثية الأبعاد</span>) attaches the GLB to the product's main image. Also available through the Merchant API.</p></div>
+        <div class="step"><span class="label">Hosting</span><h3>Cloudflare R2</h3><p>Models and studio light files on a custom domain with CORS and long caching. Effectively free at Aldaham's size.</p></div>
+        <div class="step"><span class="label">Page</span><h3>Aldaham 3D script</h3><p>Adds the 3D slide to the gallery with the matched studio lighting, view buttons, AR on phones, a QR code on desktop and live time on watches.</p></div>
+      </div>
+      <div class="callout">Salla's reference theme already shows 3D models, but with default lighting, no AR, and a viewer version that changes without notice. Matching the photos needs studio lighting set per product family, so the script takes over that slide, or adds it when the theme does not draw one.</div>
+      <ul class="list">
+        <li><b>No per-product code.</b> Any product with a model attached through Salla's app gets the right look for its category automatically.</li>
+        <li><b>Safe to test on the live store.</b> In test mode the viewer only appears for staff who open a product with <code>?3d=1</code>.</li>
+        <li><b>Measured.</b> It sends 3D opens, interactions and AR launches to Google Tag Manager, so conversion can be compared.</li>
+        <li><b>Installed once.</b> Through the theme's custom JavaScript (Pro or Special plan), or as a private Salla app snippet that survives a theme change.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="samples">
+    <div class="rail">
+      <span class="label">Matching the photos</span>
+      <span class="note">Same camera, same framing. Drag the slider.</span>
+    </div>
+    <div class="body">
+      <h2>Lit and finished to match Aldaham's photography</h2>
+      <p>Each model was rendered in the shop's own viewer at the same angle as Aldaham's product photo and measured region by region: brightness, contrast, fine detail and colour of every finish. The studio lighting ships with the model, so what shoppers see is what was checked.</p>
+      <div class="cmp-grid">
+        <figure class="cmp">
+          <div class="cmp-frame" style="--cut:50%">
+            <img src="proposal/cmp-watch-photo.webp" alt="Aldaham product photo of the Frank Rosha SFR1838Z01">
+            <img class="over" src="proposal/cmp-watch-3d.webp" alt="Real-time 3D render of the same watch from the same angle">
+            <span class="bar"></span><span class="tag l">Photo</span><span class="tag r">3D</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" id="cmp-watch" aria-label="Compare watch photo and 3D render">
+          <figcaption>SFR1838Z01 · brushed and polished steel, rose-gold PVD, applied logo, glass</figcaption>
+        </figure>
+        <figure class="cmp">
+          <div class="cmp-frame" style="--cut:50%">
+            <img src="proposal/cmp-ring-photo.webp" alt="Aldaham product photo of the Frank Rosha JFRR0720Y ring">
+            <img class="over" src="proposal/cmp-ring-3d.webp" alt="Real-time 3D render of the same ring from the same angle">
+            <span class="bar"></span><span class="tag l">Photo</span><span class="tag r">3D</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" id="cmp-ring" aria-label="Compare ring photo and 3D render">
+          <figcaption>JFRR0720Y · 18K gold, malachite, two 0.003 ct diamonds, engraved FRANK ROSHA and 750</figcaption>
+        </figure>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>What was matched</th><th>How</th></tr></thead>
+          <tbody id="matched"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Assumed, to confirm with Aldaham</th><th>Why</th></tr></thead>
+          <tbody id="assumed"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="sourcing">
+    <div class="rail">
+      <span class="label">Models for the catalogue</span>
+      <span class="note">Indicative 2025–2026 prices, USD per product</span>
+    </div>
+    <div class="body">
+      <h2>The real cost is the models</h2>
+      <p>Frank Rosha is Aldaham's own brand, so the factory almost certainly holds the CAD files: jewellery is designed in CAD for casting, and the watch's shop images look like computer renders. Converting those files is the cheapest and most accurate route.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Ring</th><th>Watch</th><th>Turnaround</th><th>Fit for this</th></tr></thead>
+          <tbody>
+            <tr><td>Convert supplier CAD or render files</td><td class="num">$80–400</td><td class="num">$250–900</td><td>1–3 days</td><td><span class="pill ok">Best</span></td></tr>
+            <tr><td>3D artist from photos and a physical sample</td><td class="num">$150–600</td><td class="num">$300–1,500</td><td>3–10 days</td><td><span class="pill ok">Good</span></td></tr>
+            <tr><td>Specialist studio (Hexa, Modelry, 7CGI)</td><td class="num" colspan="2">$100–1,000+</td><td>2–10 days</td><td><span class="pill ok">Good, quote-based</span></td></tr>
+            <tr><td>3D scanning</td><td class="num" colspan="2">$100–500</td><td>1–3 days</td><td><span class="pill no">Fails on polished metal and stones</span></td></tr>
+            <tr><td>AI image-to-3D (Meshy, Tripo, Rodin)</td><td class="num" colspan="2">under $2 + cleanup</td><td>minutes</td><td><span class="pill no">Blurred text, wrong details</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Hosting stays near zero: 300 products at about 4 MB is 1.2 GB, inside Cloudflare R2's free 10 GB, and R2 does not charge for traffic.</p>
+    </div>
+  </section>
+
+  <section class="block" id="rollout">
+    <div class="rail">
+      <span class="label">Rollout</span>
+      <span class="note">Each phase decides the next</span>
+    </div>
+    <div class="body">
+      <h2>Pilot first, then scale</h2>
+      <div class="phases">
+        <div>
+          <span class="when">Phase 0 · done</span>
+          <h3>Sample</h3>
+          <ol>
+            <li>Watch and ring built and matched to the shop photos.</li>
+            <li>Script working on a copy of Aldaham's product page.</li>
+            <li>Install guide for Aldaham's developer.</li>
+          </ol>
+        </div>
+        <div>
+          <span class="when">Phase 1 · 2–4 weeks</span>
+          <h3>Pilot on aldaham.com</h3>
+          <ol>
+            <li>Confirm with Selia Tech (theme developer) how the theme handles 3D images, or test on a hidden product.</li>
+            <li>Put models and lighting on Cloudflare R2.</li>
+            <li>Install the script in test mode, then switch it on for 5–10 best-sellers.</li>
+            <li>Track 3D opens, AR launches and add-to-cart against products without 3D.</li>
+          </ol>
+        </div>
+        <div>
+          <span class="when">Phase 2 · after the pilot</span>
+          <h3>Scale</h3>
+          <ol>
+            <li>Ask Frank Rosha's suppliers for CAD files of the range.</li>
+            <li>Set a repeatable conversion with the same photo check.</li>
+            <li>Upload in bulk through Salla's API.</li>
+            <li>Consider wrist and finger try-on (Perfect Corp, Banuba) once models exist.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="risks">
+    <div class="rail">
+      <span class="label">Open points</span>
+      <span class="note">To settle before the pilot</span>
+    </div>
+    <div class="body">
+      <h2>What we need from Aldaham</h2>
+      <ul class="list">
+        <li><b>Theme behaviour.</b> Aldaham's theme is a Selia Tech version of Salla's reference theme. Whether it still draws 3D slides is confirmed with one test product; the script works either way.</li>
+        <li><b>Salla plan and access.</b> Custom JavaScript needs the Pro or Special plan and Store Design permission. A private app snippet is the alternative.</li>
+        <li><b>Source files.</b> CAD or render scenes from the Frank Rosha suppliers cut cost and make the models exact. Without them, cost and turnaround rise two to four times.</li>
+        <li><b>AR on iPhone is simpler.</b> Apple's AR view drops glass refraction, brushed-steel direction and diamond fire. The page viewer keeps them.</li>
+        <li><b>Gallery slot.</b> A 3D model uses one of a product's 10 image slots in Salla.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="files">
+    <div class="rail">
+      <span class="label">Delivered</span>
+      <span class="note">In the project folder</span>
+    </div>
+    <div class="body">
+      <div class="table-wrap">
+        <table class="files">
+          <tbody>
+            <tr><td>salla/aldaham-3d.js</td><td>The script for the store</td></tr>
+            <tr><td>salla/README.md</td><td>Install guide: hosting, Salla setup, adding products, analytics</td></tr>
+            <tr><td>pages/watch.html, ring.html</td><td>Copies of Aldaham's product pages running the script</td></tr>
+            <tr><td>models/*.glb</td><td>The two models and their poster images</td></tr>
+            <tr><td>env/*.hdr</td><td>Studio lighting for watches and jewellery</td></tr>
+            <tr><td>blender/</td><td>Scripts that rebuild each model</td></tr>
+            <tr><td>tools/</td><td>Photo-matching tools: render, compare, region check</td></tr>
+            <tr><td>docs/research.md</td><td>Research notes with sources</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>Product names, photos and prices from aldaham.com, used for this proposal only.</span>
+    <span class="mono">model-viewer 4.1.0 · glTF 2.0</span>
+  </div>
+</div>
+
+<script>
+(function () {
+  var PIECES = {
+    watch: {
+      src: 'models/frank-rosha-sfr1838z01.glb',
+      poster: 'models/frank-rosha-sfr1838z01-poster.webp',
+      env: 'env/studio-watch.hdr', exposure: 1,
+      name: '<b>SFR1838Z01</b> · 34 mm · steel and rose gold',
+      foot: 'The hands show your current time.',
+      views: [
+        { label: 'Front', orbit: '0deg 92deg auto', fov: '18deg' },
+        { label: 'Side', orbit: '35deg 78deg auto', fov: '18deg' },
+        { label: 'Back', orbit: '180deg 90deg auto', fov: '18deg' },
+        { label: 'Dial close-up', orbit: '0deg 90deg auto', fov: '7deg' }
+      ]
+    },
+    ring: {
+      src: 'models/frank-rosha-jfrr0720y-ring.glb',
+      poster: 'models/frank-rosha-jfrr0720y-ring-poster.webp',
+      env: 'env/studio-ring.hdr', exposure: 1,
+      name: '<b>JFRR0720Y</b> · 18K gold · malachite · diamonds',
+      foot: 'Turn it over to read FRANK ROSHA and 750 inside the band.',
+      views: [
+        { label: 'Front', orbit: '0deg 22deg auto', fov: '18deg' },
+        { label: 'Angle', orbit: '35deg 40deg auto', fov: '18deg' },
+        { label: 'Engraving', orbit: '0deg 75deg auto', fov: '14deg' },
+        { label: 'Diamonds', orbit: '0deg 15deg auto', fov: '6deg' }
+      ]
+    }
+  };
+  var MATCHED = [
+    ['Shape and proportions', 'Measured from the shop photos in millimetres (34 mm case; ring plate traced from the photo) and checked with an edge overlay at the photo\'s camera angle.'],
+    ['Steel finishes', 'Polished centre links, brushed outer links and case with the brushing running the right way, using directional reflections.'],
+    ['Rose gold, 18K gold, black bezel', 'Colour and gloss calibrated against the photo region by region under the same tone mapping the shop uses.'],
+    ['Relief', 'Applied dial logo and numerals, faceted hands, stepped inner frame, bevelled edges, recessed ring engravings: real geometry, with baked shading in the crevices.'],
+    ['Stones and glass', 'Faceted brilliant-cut diamonds, malachite banding taken from the photo, flat watch glass.'],
+    ['Light', 'A studio lighting rig per product family, tuned so highlights, dark reflections and contrast fall where they do in the photos.']
+  ];
+  var ASSUMED = [
+    ['Ring size EU 54 (US 7)', 'Not stated on the product page; the band is easy to resize per variant.'],
+    ['Clasp internals and movement', 'Not visible in any photo; kept plain and closed.'],
+    ['Watch glass is mineral', '"Scratch-resistant glass" on the product page; sapphire would look the same in the viewer.']
+  ];
+  function rows(id, data) {
+    var tb = document.getElementById(id);
+    tb.innerHTML = data.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('');
+  }
+  rows('matched', MATCHED); rows('assumed', ASSUMED);
+
+  var mv = document.getElementById('mv');
+  var viewsEl = document.getElementById('views');
+  var current = 'watch';
+  function secondsOnDial() { var d = new Date(); return (d.getHours() % 12) * 3600 + d.getMinutes() * 60 + d.getSeconds(); }
+  function setViews(p) {
+    viewsEl.innerHTML = p.views.map(function (v, i) { return '<button type="button" aria-pressed="' + (i === 0) + '" data-i="' + i + '">' + v.label + '</button>'; }).join('');
+  }
+  function pick(key) {
+    current = key;
+    var p = PIECES[key];
+    document.getElementById('pick-watch').setAttribute('aria-pressed', String(key === 'watch'));
+    document.getElementById('pick-ring').setAttribute('aria-pressed', String(key === 'ring'));
+    document.getElementById('stage-name').innerHTML = p.name;
+    document.getElementById('stage-foot').textContent = p.foot;
+    mv.setAttribute('poster', p.poster);
+    mv.setAttribute('environment-image', p.env);
+    mv.setAttribute('exposure', p.exposure);
+    mv.setAttribute('camera-orbit', p.views[0].orbit);
+    mv.setAttribute('field-of-view', p.views[0].fov);
+    mv.setAttribute('src', p.src);
+    setViews(p);
+  }
+  viewsEl.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var v = PIECES[current].views[+b.dataset.i];
+    mv.cameraOrbit = v.orbit; mv.fieldOfView = v.fov; mv.cameraTarget = 'auto auto auto';
+    viewsEl.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+  });
+  document.getElementById('pick-watch').addEventListener('click', function () { if (current !== 'watch') pick('watch'); });
+  document.getElementById('pick-ring').addEventListener('click', function () { if (current !== 'ring') pick('ring'); });
+  mv.addEventListener('load', function () {
+    if (current === 'watch' && mv.availableAnimations.indexOf('time') >= 0) {
+      mv.animationName = 'time'; mv.play();
+      setTimeout(function () { mv.currentTime = secondsOnDial(); }, 200);
+    }
+  });
+  mv.addEventListener('camera-change', function (e) {
+    if (e.detail.source === 'user-interaction') document.getElementById('hint').hidden = true;
+  });
+  setViews(PIECES.watch);
+
+  [['cmp-watch'], ['cmp-ring']].forEach(function (a) {
+    var input = document.getElementById(a[0]);
+    var frame = input.previousElementSibling;
+    input.addEventListener('input', function () { frame.style.setProperty('--cut', input.value + '%'); });
+  });
+})();
+</script>
+
+</body>
+</html>

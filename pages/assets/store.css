@@ -59,7 +59,7 @@ button { font-family: inherit; }
 /* product layout */
 .product-single { max-width: 1280px; margin: 0 auto; padding: 16px 16px 60px; }
 .product-single__columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
-.product-single__slider { position: sticky; top: 100px; }
+.product-single__slider { position: sticky; top: 100px; min-width: 0; }
 .product-single__main-media { height: 650px; position: relative; }
 
 /* salla-slider replica */
@@ -125,7 +125,7 @@ salla-slider .product-single__thumb-image { width: 100%; height: 100%; object-fi
 
 /* responsive (Salla's mobile layout: gallery full width, thumbs below) */
 @media (max-width: 1023px) {
-  .product-single__columns { grid-template-columns: 1fr; gap: 22px; }
+  .product-single__columns { grid-template-columns: minmax(0, 1fr); gap: 22px; }
   .product-single__slider { position: static; }
 }
 @media (max-width: 767px) {
@@ -140,6 +140,16 @@ salla-slider .product-single__thumb-image { width: 100%; height: 100%; object-fi
   salla-slider .s-slider-container { width: 100%; aspect-ratio: 1 / 1; height: auto; border-radius: 0; }
   salla-slider .s-slider-thumbs { order: 0; flex: none; height: 78px; padding: 0 16px; }
   salla-slider .s-slider-thumbs .swiper-slide { height: 76px; width: 76px; }
-  .media-actions { inset-inline-end: 14px; }
+  .media-actions { inset-inline-end: 62px; } /* clear of the 3D slide's tool column */
   .product-title { font-size: 20px; }
 }
+
+/* demo: switch between the demo products */
+.demo-strip { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 16px; }
+.demo-strip p { margin: 0; }
+.demo-nav { display: flex; gap: 4px; padding: 2px; border-radius: 999px; background: rgba(255,255,255,.08); }
+.demo-nav a { padding: 3px 12px; border-radius: 999px; color: #f3e7c6; white-space: nowrap; transition: background .15s; }
+.demo-nav a:hover { background: rgba(255,255,255,.12); }
+.demo-nav a[aria-current="page"] { background: var(--color-primary); color: #1f1a10; font-weight: 700; }
+.demo-nav a:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+@media (max-width: 767px) { .demo-strip { font-size: 11.5px; } .demo-strip p { width: 100%; } }

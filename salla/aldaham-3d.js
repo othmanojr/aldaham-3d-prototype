@@ -66,6 +66,24 @@
       name: 'Frank Rosha JFRR0720Y',
       glb: 'models/frank-rosha-jfrr0720y-ring.glb',
       poster: 'models/frank-rosha-jfrr0720y-ring-poster.webp'
+    },
+    // aldaham.com/ar/ساعة-زركون-نسائية-ماركة-جينوفسكي-zge1819v04/p1886468630 (SKU WZZGE1819V04)
+    '1886468630': {
+      look: 'watch',
+      name: 'Geneuoski ZGE1819V04',
+      glb: 'models/geneuoski-1819.glb',
+      usdz: 'models/geneuoski-1819.usdz',
+      poster: 'models/geneuoski-1819-poster.webp',
+      env: 'env/studio-watch2.hdr',
+      // targets sit 4-5 mm below centre so the dial clears the hint / buttons over the bottom of the slide on phones;
+      // the poster (tools/watch2_finalize.sh) is rendered with the same front camera so the poster-to-3D swap does not jump
+      views: [
+        { id: 'front', label: 'الأمام', orbit: '0deg 90deg auto', fov: '17deg', target: '0m -0.005m auto' },
+        { id: 'angle', label: 'الزاوية', orbit: '-35deg 72deg auto', fov: '22deg', target: 'auto -0.004m auto' },
+        { id: 'side', label: 'الجانب', orbit: '-90deg 85deg auto', fov: '19deg', target: 'auto -0.004m auto' },
+        { id: 'back', label: 'الخلف', orbit: '180deg 90deg auto', fov: '18deg', target: 'auto -0.004m auto' },
+        { id: 'clasp', label: 'القفل', orbit: '180deg 150deg auto', fov: '18deg' }
+      ]
     }
   };
 
@@ -170,7 +188,7 @@
     '.a3d-ui{position:absolute;inset:0;pointer-events:none;z-index:3}',
     '.a3d-ui>*{pointer-events:auto}',
     '.a3d-badge{position:absolute;top:14px;inset-inline-start:14px;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.92);border:1px solid #ece6d6;color:#594103;font-size:12px;font-weight:700;line-height:1}',
-    '.a3d-badge svg,.a3d-btn svg,.a3d-hint svg,.a3d-live svg{width:16px;height:16px;flex:none}',
+    '.a3d-badge svg,.a3d-btn svg,.a3d-hint svg,.a3d-live svg,.a3d-ar svg{width:16px;height:16px;flex:none}',
     '.a3d-tools{position:absolute;top:14px;inset-inline-end:14px;display:flex;flex-direction:column;gap:8px}',
     '.a3d-btn{appearance:none;display:grid;place-items:center;width:38px;height:38px;border-radius:999px;border:1px solid #ece6d6;background:rgba(255,255,255,.92);color:#3a3020;cursor:pointer;padding:0;transition:background .15s,border-color .15s}',
     '.a3d-btn:hover{background:#fff;border-color:#d8c082}',
@@ -179,14 +197,15 @@
     '.a3d-bottom>*{pointer-events:auto}',
     '.a3d-hint{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:rgba(31,26,16,.72);color:#fff;font-size:12px;transition:opacity .4s;pointer-events:none}',
     '.a3d-hint.is-hidden{opacity:0}',
-    '.a3d-views{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.94);border:1px solid #ece6d6}',
+    '.a3d-views{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.94);border:1px solid #ece6d6;max-width:calc(100vw - 28px);overflow-x:auto;scrollbar-width:none}',
+    '.a3d-views::-webkit-scrollbar{display:none}',
     '.a3d-view{appearance:none;border:0;background:transparent;color:#5b5240;font:inherit;font-size:12.5px;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}',
     '.a3d-view[aria-pressed="true"]{background:#d8c082;color:#3f2e02;font-weight:700}',
     '.a3d-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}',
-    '.a3d-live{appearance:none;display:flex;align-items:center;gap:6px;border:1px solid #ece6d6;background:rgba(255,255,255,.94);color:#5b5240;font:inherit;font-size:12.5px;padding:7px 12px;border-radius:999px;cursor:pointer}',
+    '.a3d-live{appearance:none;display:flex;align-items:center;gap:6px;white-space:nowrap;border:1px solid #ece6d6;background:rgba(255,255,255,.94);color:#5b5240;font:inherit;font-size:12.5px;padding:7px 12px;border-radius:999px;cursor:pointer}',
     '.a3d-live[aria-pressed="true"]{border-color:#d8c082;color:#3f2e02}',
     '.a3d-live b{font-variant-numeric:tabular-nums;font-weight:700}',
-    '.a3d-ar{appearance:none;display:flex;align-items:center;gap:6px;border:0;background:#d8c082;color:#3f2e02;font:inherit;font-size:13px;font-weight:700;padding:9px 14px;border-radius:999px;cursor:pointer}',
+    '.a3d-ar{appearance:none;display:flex;align-items:center;gap:6px;white-space:nowrap;border:0;background:#d8c082;color:#3f2e02;font:inherit;font-size:13px;font-weight:700;padding:9px 14px;border-radius:999px;cursor:pointer}',
     '.a3d-ar[hidden]{display:none}',
     '.a3d-progress{position:absolute;inset-inline:0;top:0;height:2px;background:transparent;z-index:4}',
     '.a3d-progress i{display:block;height:100%;width:0;background:#d8c082;transition:width .2s,opacity .4s}',
@@ -222,6 +241,7 @@
       '<model-viewer data-a3d-mv' +
       ' src="' + url(P.glb) + '"' +
       ' poster="' + url(P.poster) + '"' +
+      (P.usdz ? ' ios-src="' + url(P.usdz) + '"' : '') +
       ' environment-image="' + url(P.env) + '"' +
       ' exposure="' + P.exposure + '"' +
       ' tone-mapping="neutral"' +

@@ -253,7 +253,7 @@
       (P.views[0].target ? ' camera-target="' + P.views[0].target + '"' : '') +
       ' field-of-view="' + P.views[0].fov + '" min-field-of-view="6deg" max-field-of-view="30deg"' +
       ' min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 180deg auto"' +
-      ' interpolation-decay="120"' +
+      ' interpolation-decay="50"' +
       ' ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed" ar-placement="floor"' +
       ' loading="eager" reveal="auto"' +
       ' alt="' + P.name + ' – عرض ثلاثي الأبعاد">' +
@@ -267,7 +267,7 @@
       (isTouch() ? '' : '<button type="button" class="a3d-btn" data-act="qr" aria-label="' + T.qr + '" title="' + T.qr + '">' + icon.qr + '</button>') +
       '</div>' +
       '<div class="a3d-bottom">' +
-      '<div class="a3d-hint">' + icon.rotate + (isTouch() ? T.hint : T.hintDesktop) + '</div>' +
+      '<div class="a3d-hint">' + icon.rotate + '<span>' + T.loading + '</span></div>' +
       '<div class="a3d-row">' +
       '<div class="a3d-views" role="group">' + views + '</div>' +
       (P.liveTime ? '<button type="button" class="a3d-live" aria-pressed="true" hidden>' + icon.clock + '<span>' + T.live + '</span> <b></b></button>' : '') +
@@ -295,6 +295,7 @@
     var mv = slide.querySelector('model-viewer');
     var bar = slide.querySelector('.a3d-progress i');
     var hint = slide.querySelector('.a3d-hint');
+    var hintText = hint.querySelector('span');
     var live = slide.querySelector('.a3d-live');
     var liveOn = true;
     var current = P.views[0];
@@ -311,16 +312,18 @@
       if (!live || !liveOn) return;
       var d = new Date();
       live.querySelector('b').textContent = d.toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' });
+      if (mv.loaded && mv.animationName === 'time') { mv.pause(); mv.currentTime = secondsOnDial(); }
     }
     function syncTime() {
       if (!P.liveTime || mv.availableAnimations.indexOf('time') < 0) return;
       mv.animationName = 'time';
+      // no continuous animation: the clip stays paused and the hands are set to the real time,
+      // so the GPU only redraws when the time changes (every 15 s) or the shopper drags
       if (liveOn) {
-        mv.timeScale = 1; mv.play();
-        // model-viewer (re)starts the clip at 0 in its own update after play(): set the time once it runs
-        var setNow = function () { mv.currentTime = secondsOnDial(); };
-        setNow(); requestAnimationFrame(function () { requestAnimationFrame(setNow); });
-        mv.addEventListener('play', setNow, { once: true });
+        // model-viewer only applies a clip once it has run a frame: start it, then hold it at the real time
+        var hold = function () { mv.pause(); mv.currentTime = secondsOnDial(); };
+        mv.play();
+        requestAnimationFrame(function () { requestAnimationFrame(function () { hold(); setTimeout(hold, 120); }); });
       }
       else { mv.pause(); mv.currentTime = 36600; } // catalogue pose, 10:10
     }
@@ -329,9 +332,11 @@
       var p = e.detail.totalProgress;
       bar.style.width = (p * 100) + '%';
       bar.style.opacity = p >= 1 ? '0' : '1';
+      if (!mv.loaded && p < 1) hintText.textContent = T.loading + ' ' + Math.round(p * 100) + '%';
     });
     mv.addEventListener('load', function () {
       track('loaded');
+      hintText.textContent = isTouch() ? T.hint : T.hintDesktop;
       if (mv.canActivateAR) slide.querySelector('.a3d-ar').hidden = false;
       if (live && mv.availableAnimations.indexOf('time') >= 0) { live.hidden = false; syncTime(); tick(); setInterval(tick, 15000); }
     });

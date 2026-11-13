@@ -78,8 +78,10 @@
       // targets sit 4-5 mm below centre so the dial clears the hint / buttons over the bottom of the slide on phones;
       // the poster (tools/watch2_finalize.sh) is rendered with the same front camera so the poster-to-3D swap does not jump
       views: [
-        { id: 'front', label: 'الأمام', orbit: '0deg 90deg auto', fov: '17deg', target: '0m -0.005m auto' },
-        { id: 'angle', label: 'الزاوية', orbit: '-35deg 72deg auto', fov: '22deg', target: 'auto -0.004m auto' },
+        // fix4: front fov 17 -> 18.5 (less of the 12 o'clock strand cut by the top edge); angle from the crown side
+        // (the IMG_1292 side) so the 12 o'clock strand shows its gold outer face, not only the steel inner skin
+        { id: 'front', label: 'الأمام', orbit: '0deg 90deg auto', fov: '18.5deg', target: '0m -0.005m auto' },
+        { id: 'angle', label: 'الزاوية', orbit: '35deg 75deg auto', fov: '21deg', target: '0m -0.005m -0.010m' },
         { id: 'side', label: 'الجانب', orbit: '-90deg 85deg auto', fov: '19deg', target: 'auto -0.004m auto' },
         { id: 'back', label: 'الخلف', orbit: '180deg 90deg auto', fov: '18deg', target: 'auto -0.004m auto' },
         { id: 'clasp', label: 'القفل', orbit: '180deg 150deg auto', fov: '18deg' }
@@ -313,7 +315,13 @@
     function syncTime() {
       if (!P.liveTime || mv.availableAnimations.indexOf('time') < 0) return;
       mv.animationName = 'time';
-      if (liveOn) { mv.currentTime = secondsOnDial(); mv.timeScale = 1; mv.play(); }
+      if (liveOn) {
+        mv.timeScale = 1; mv.play();
+        // model-viewer (re)starts the clip at 0 in its own update after play(): set the time once it runs
+        var setNow = function () { mv.currentTime = secondsOnDial(); };
+        setNow(); requestAnimationFrame(function () { requestAnimationFrame(setNow); });
+        mv.addEventListener('play', setNow, { once: true });
+      }
       else { mv.pause(); mv.currentTime = 36600; } // catalogue pose, 10:10
     }
 
